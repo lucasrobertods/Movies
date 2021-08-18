@@ -6,6 +6,7 @@ import android.widget.Toast
 import br.com.movies.R
 import br.com.movies.model.Movie
 import br.com.movies.model.SimilarMovie
+import br.com.movies.ui.adapter.SimilarMovieAdapter
 import br.com.movies.utils.Constants
 import br.com.movies.viewmodel.MovieViewModel
 import com.bumptech.glide.Glide
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: MovieViewModel by viewModel()
     private var isLiked = true
+    private lateinit var adapter: SimilarMovieAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +31,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupView() {
+        adapter = SimilarMovieAdapter()
+        rvSimilarMovie.adapter = adapter
+
         setupListeners()
         getMovie()
     }
@@ -49,15 +54,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.getMovie(object : Callback<Movie> {
             override fun onResponse(call: Call<Movie>, response: Response<Movie>) {
                 val movie = response.body()
-
-                Glide
-                    .with(this@MainActivity)
-                    .load(Constants.BASE_IMAGE_URL + movie?.poster_path)
-                    .into(imgBanner)
-
-                tvTitle.text = movie?.title
-                tvLikes.text = getString(R.string.voteCounts, movie?.vote_count)
-                tvViews.text = getString(R.string.countViews, movie?.popularity)
+                showMovie(movie)
             }
 
             override fun onFailure(call: Call<Movie>, t: Throwable) {
@@ -72,7 +69,8 @@ class MainActivity : AppCompatActivity() {
                 call: Call<SimilarMovie>,
                 response: Response<SimilarMovie>
             ) {
-                Toast.makeText(this@MainActivity, "Sucesso Filme!", Toast.LENGTH_SHORT).show()
+                val similar = response.body()
+                adapter.items = similar?.results?.toMutableList() ?: mutableListOf()
             }
 
             override fun onFailure(call: Call<SimilarMovie>, t: Throwable) {
@@ -80,5 +78,16 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+    }
+
+    private fun showMovie(movie: Movie?) {
+        Glide
+            .with(this@MainActivity)
+            .load(Constants.BASE_IMAGE_URL + movie?.poster_path)
+            .into(imgBanner)
+
+        tvTitle.text = movie?.title
+        tvLikes.text = getString(R.string.voteCounts, movie?.vote_count)
+        tvViews.text = getString(R.string.countViews, movie?.popularity)
     }
 }

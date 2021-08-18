@@ -19,7 +19,7 @@ interface MovieApi {
 
     @GET("movie/{movie_id}/similar?api_key=$apiAcessKey")
     fun getSimilar(
-        @Path("movie_id") movieId: String? = "550"
+        @Path("movie_id") movieId: String? = "585"
     ): Call<SimilarMovie>
 
 }
